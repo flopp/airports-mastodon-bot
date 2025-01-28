@@ -1,0 +1,6 @@
+{
+    "Server": "https://mastodon.social/",
+    "ClientID": "client key from application config",
+    "ClientSecret": "client secret from application config",
+    "AccessToken": "access token from application config"
+}
