@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/flopp/airports-mastodon-bot/internal/airports"
 	"github.com/flopp/airports-mastodon-bot/internal/data"
@@ -35,7 +34,7 @@ type Options struct {
 }
 
 func parseCommandLine() Options {
-	data := flag.String("data", "data", "data folder")
+	data := flag.String("data", ".data", "data folder")
 	config := flag.String("config", "production-config.json", "json file with mastodon config")
 
 	flag.Usage = func() {
@@ -134,9 +133,9 @@ func createBbox(airport *airports.Airport) (*s2.Rect, error) {
 func genMessage(airport *airports.Airport) string {
 	msg := ""
 	if airport.City != "" {
-		msg += fmt.Sprintf("%s - %s, %s\n\n", airport.Name, airport.City, airport.Country)
+		msg += fmt.Sprintf("%s - %s, %s\n\n", airport.Name, airport.City, airport.Country.Name)
 	} else {
-		msg += fmt.Sprintf("%s - %s\n\n", airport.Name, airport.Country)
+		msg += fmt.Sprintf("%s - %s\n\n", airport.Name, airport.Country.Name)
 	}
 
 	if airport.Wikipedia != "" {
@@ -153,8 +152,9 @@ func genMessage(airport *airports.Airport) string {
 		tags = append(tags, fmt.Sprintf("#%s", airport.IATA))
 	}
 	if airport.City != "" {
-		tags = append(tags, fmt.Sprintf("#%s", cleanCity(airport.City)))
+		tags = append(tags, fmt.Sprintf("#%s", data.SanitizeName(airport.City)))
 	}
+	tags = append(tags, fmt.Sprintf("#%s", data.SanitizeName(airport.Country.Name)))
 	tags = append(tags, "#airport")
 
 	msg += strings.Join(tags, " ")
@@ -181,22 +181,10 @@ func drawAirport(airport *airports.Airport, tiles *sm.TileProvider) ([]byte, err
 	buff := new(bytes.Buffer)
 	var byteWriter = bufio.NewWriter(buff)
 	if err := jpeg.Encode(byteWriter, img, nil); err != nil {
-		return nil, fmt.Errorf("failed to enode jpg: %w", err)
+		return nil, fmt.Errorf("failed to encode jpg: %w", err)
 	}
 
 	return buff.Bytes(), nil
-}
-
-func cleanCity(s string) string {
-	cleaned := ""
-	for _, c := range s {
-		if unicode.IsLetter(c) || unicode.IsDigit(c) {
-			cleaned += string(c)
-		} else if c == '(' || c == '/' || c == ',' {
-			break
-		}
-	}
-	return cleaned
 }
 
 func main() {
@@ -209,6 +197,7 @@ func main() {
 
 	airports_csv := fmt.Sprintf("%s/airports.csv", options.DataPath)
 	runways_csv := fmt.Sprintf("%s/runways.csv", options.DataPath)
+	countries_csv := fmt.Sprintf("%s/countries.csv", options.DataPath)
 
 	airports_data, err := data.ReadCsvFile(airports_csv)
 	if err != nil {
@@ -218,7 +207,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = runways_data
+	countries_data, err := data.ReadCsvFile(countries_csv)
+	if err != nil {
+		panic(err)
+	}
+
+	countries_by_code := make(map[string]*airports.Country)
+	for line, data := range countries_data {
+		if line == 0 {
+			continue
+		}
+		country, err := airports.CreateCountryFromCsvData(data)
+		if err != nil {
+			panic(fmt.Errorf("%s:%d could not parse airport: %w", countries_csv, line, err))
+		}
+
+		if existing_country, found := countries_by_code[country.Code]; found {
+			panic(fmt.Errorf("counties with same code '%s': '%s', '%s'", country.Code, existing_country.Name, country.Name))
+		}
+		countries_by_code[country.Code] = &country
+	}
 
 	airports_by_icao := make(map[string]*airports.Airport)
 
@@ -226,7 +234,7 @@ func main() {
 		if line == 0 {
 			continue
 		}
-		airport, err := airports.CreateAiportFromCsvData(data)
+		airport, err := airports.CreateAiportFromCsvData(data, countries_by_code)
 		if err != nil {
 			panic(fmt.Errorf("%s:%d could not parse airport: %w", airports_csv, line, err))
 		}
@@ -276,7 +284,7 @@ func main() {
 
 	toot := &mastodon.Toot{
 		Status:     genMessage(airport),
-		Visibility: "unlisted",
+		Visibility: "public",
 		Language:   "en",
 	}
 

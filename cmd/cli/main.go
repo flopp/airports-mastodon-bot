@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"unicode"
 
 	"github.com/flopp/airports-mastodon-bot/internal/airports"
 	"github.com/flopp/airports-mastodon-bot/internal/data"
@@ -28,7 +27,7 @@ type Options struct {
 }
 
 func parseCommandLine() Options {
-	data := flag.String("data", "data", "data folder")
+	data := flag.String("data", ".data", "data folder")
 	airport := flag.String("airport", "", "ICAO code of airport to render")
 
 	flag.Usage = func() {
@@ -111,7 +110,7 @@ func createBbox(airport *airports.Airport) (*s2.Rect, error) {
 }
 
 func textAirport(airport *airports.Airport) {
-	fmt.Printf("%s - %s, %s\n", airport.Name, airport.City, airport.Country)
+	fmt.Printf("%s - %s, %s\n", airport.Name, airport.City, airport.Country.Name)
 	fmt.Println("")
 
 	if airport.Wikipedia != "" {
@@ -127,7 +126,7 @@ func textAirport(airport *airports.Airport) {
 	if airport.IATA != "" {
 		tags = append(tags, fmt.Sprintf("#%s", airport.IATA))
 	}
-	tags = append(tags, fmt.Sprintf("#%s", cleanCity(airport.City)))
+	tags = append(tags, fmt.Sprintf("#%s", data.SanitizeName(airport.City)))
 	tags = append(tags, "#airport")
 
 	fmt.Println(strings.Join(tags, " "))
@@ -200,23 +199,12 @@ func drawAirport(airport *airports.Airport, tiles *sm.TileProvider, path string)
 	return nil
 }
 
-func cleanCity(s string) string {
-	cleaned := ""
-	for _, c := range s {
-		if unicode.IsLetter(c) || unicode.IsDigit(c) {
-			cleaned += string(c)
-		} else if c == '(' || c == '/' || c == ',' {
-			break
-		}
-	}
-	return cleaned
-}
-
 func main() {
 	options := parseCommandLine()
 
 	airports_csv := fmt.Sprintf("%s/airports.csv", options.DataPath)
 	runways_csv := fmt.Sprintf("%s/runways.csv", options.DataPath)
+	countries_csv := fmt.Sprintf("%s/countries.csv", options.DataPath)
 
 	airports_data, err := data.ReadCsvFile(airports_csv)
 	if err != nil {
@@ -228,13 +216,33 @@ func main() {
 	}
 	_ = runways_data
 
+	countries_data, err := data.ReadCsvFile(countries_csv)
+	if err != nil {
+		panic(err)
+	}
+
+	countries_by_code := make(map[string]*airports.Country)
+	for line, data := range countries_data {
+		if line == 0 {
+			continue
+		}
+		country, err := airports.CreateCountryFromCsvData(data)
+		if err != nil {
+			panic(fmt.Errorf("%s:%d could not parse airport: %w", countries_csv, line, err))
+		}
+
+		if existing_country, found := countries_by_code[country.Code]; found {
+			panic(fmt.Errorf("counties with same code '%s': '%s', '%s'", country.Code, existing_country.Name, country.Name))
+		}
+		countries_by_code[country.Code] = &country
+	}
 	airports_by_icao := make(map[string]*airports.Airport)
 
 	for line, data := range airports_data {
 		if line == 0 {
 			continue
 		}
-		airport, err := airports.CreateAiportFromCsvData(data)
+		airport, err := airports.CreateAiportFromCsvData(data, countries_by_code)
 		if err != nil {
 			panic(fmt.Errorf("%s:%d could not parse airport: %w", airports_csv, line, err))
 		}
@@ -280,7 +288,7 @@ func main() {
 	if options.Airport != "" {
 		airport, found := airports_by_icao[options.Airport]
 		if !found {
-			fmt.Sprintf("Cannot find airport by ICAO '%s'\n", options.Airport)
+			fmt.Printf("Cannot find airport by ICAO '%s'\n", options.Airport)
 			os.Exit(1)
 		}
 
@@ -300,7 +308,8 @@ func main() {
 			if err := drawAirport(airport, tilesOSM, fmt.Sprintf("render/%s-osm.jpg", airport.ICAO)); err != nil {
 				panic(fmt.Errorf("cannot draw airport '%s': %w", airport.Name, err))
 			}
-			fmt.Println("\n--\n")
+			fmt.Println()
+			fmt.Println()
 		}
 	}
 }

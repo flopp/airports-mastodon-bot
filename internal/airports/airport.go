@@ -10,7 +10,7 @@ type Airport struct {
 	Name             string
 	ICAO             string
 	IATA             string
-	Country          string
+	Country          *Country
 	City             string
 	LatLon           LatLon
 	Website          string
@@ -19,7 +19,7 @@ type Airport struct {
 	ExcessiveRunways []*Runway
 }
 
-func CreateAiportFromCsvData(data []string) (Airport, error) {
+func CreateAiportFromCsvData(data []string, countries map[string]*Country) (Airport, error) {
 	if len(data) != 18 {
 		return Airport{}, fmt.Errorf("expected 18 data items, got %d", len(data))
 	}
@@ -32,7 +32,7 @@ func CreateAiportFromCsvData(data []string) (Airport, error) {
 	lon := data[5]
 	// 6 eleveation_ft
 	// 7 continent
-	country := data[8]
+	country_code := data[8]
 	// 9 iso_region
 	city := data[10]
 	// 11 scheduled_service
@@ -45,6 +45,11 @@ func CreateAiportFromCsvData(data []string) (Airport, error) {
 
 	if iata == icao {
 		iata = ""
+	}
+
+	country, found := countries[country_code]
+	if !found {
+		return Airport{}, fmt.Errorf("failed to fetch country: %s", country_code)
 	}
 
 	latlon, err := ParseLatLon(lat, lon)

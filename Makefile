@@ -5,5 +5,9 @@
 .PHONY: deploy
 deploy: .bin/bot-linux
 	ssh echeclus.uberspace.de mkdir -p packages/airports-mastodon-bot
-	scp -r production-config.json scripts/cronjob.sh .bin/bot-linux data echeclus.uberspace.de:packages/airports-mastodon-bot
+	scp -r production-config.json scripts/cronjob.sh .bin/bot-linux .data echeclus.uberspace.de:packages/airports-mastodon-bot
 	ssh echeclus.uberspace.de chmod +x packages/airports-mastodon-bot/cronjob.sh packages/airports-mastodon-bot/bot-linux
+
+.PHONY: run-bot
+run-bot:
+	ssh echeclus.uberspace.de packages/airports-mastodon-bot/cronjob.sh
