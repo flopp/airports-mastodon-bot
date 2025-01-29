@@ -155,7 +155,7 @@ func genMessage(airport *airports.Airport) string {
 		tags = append(tags, fmt.Sprintf("#%s", data.SanitizeName(airport.City)))
 	}
 	tags = append(tags, fmt.Sprintf("#%s", data.SanitizeName(airport.Country.Name)))
-	tags = append(tags, "#airport")
+	tags = append(tags, "#airport", "#aviation", "#avgeeks", "#GIS")
 
 	msg += strings.Join(tags, " ")
 
