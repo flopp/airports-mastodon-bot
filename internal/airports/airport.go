@@ -75,3 +75,49 @@ func (airport *Airport) AddRunway(runway *Runway) {
 		airport.Runways = append(airport.Runways, runway)
 	}
 }
+
+type BoundingBox struct {
+	Min, Max LatLon
+}
+
+func (airport Airport) GetBoundingBox(margin float64) BoundingBox {
+	bb := BoundingBox{airport.LatLon, airport.LatLon}
+
+	for _, runway := range airport.Runways {
+		if runway.LeLatLon.IsValid() {
+			if runway.LeLatLon.Lat < bb.Min.Lat {
+				bb.Min.Lat = runway.LeLatLon.Lat
+			} else if runway.LeLatLon.Lat > bb.Max.Lat {
+				bb.Max.Lat = runway.LeLatLon.Lat
+			}
+
+			if runway.LeLatLon.Lon < bb.Min.Lon {
+				bb.Min.Lon = runway.LeLatLon.Lon
+			} else if runway.LeLatLon.Lon > bb.Max.Lon {
+				bb.Max.Lon = runway.LeLatLon.Lon
+			}
+		}
+
+		if runway.HeLatLon.IsValid() {
+			if runway.HeLatLon.Lat < bb.Min.Lat {
+				bb.Min.Lat = runway.HeLatLon.Lat
+			} else if runway.HeLatLon.Lat > bb.Max.Lat {
+				bb.Max.Lat = runway.HeLatLon.Lat
+			}
+
+			if runway.HeLatLon.Lon < bb.Min.Lon {
+				bb.Min.Lon = runway.HeLatLon.Lon
+			} else if runway.HeLatLon.Lon > bb.Max.Lon {
+				bb.Max.Lon = runway.HeLatLon.Lon
+			}
+		}
+	}
+
+	// add margin
+	bb.Min.Lat -= margin
+	bb.Min.Lon -= margin
+	bb.Max.Lat += margin
+	bb.Max.Lon += margin
+
+	return bb
+}

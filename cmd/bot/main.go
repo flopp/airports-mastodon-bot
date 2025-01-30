@@ -91,43 +91,9 @@ func is_interesting(airport *airports.Airport) bool {
 	return true
 }
 
-func createBbox(airport *airports.Airport) (*s2.Rect, error) {
-	minLat := airport.LatLon.Lat
-	maxLat := minLat
-	minLon := airport.LatLon.Lon
-	maxLon := minLon
-
-	for _, runway := range airport.Runways {
-		if runway.LeLatLon.IsValid() {
-			if runway.LeLatLon.Lat < minLat {
-				minLat = runway.LeLatLon.Lat
-			} else if runway.LeLatLon.Lat > maxLat {
-				maxLat = runway.LeLatLon.Lat
-			}
-
-			if runway.LeLatLon.Lon < minLon {
-				minLon = runway.LeLatLon.Lon
-			} else if runway.LeLatLon.Lon > maxLon {
-				maxLon = runway.LeLatLon.Lon
-			}
-		}
-
-		if runway.HeLatLon.IsValid() {
-			if runway.HeLatLon.Lat < minLat {
-				minLat = runway.HeLatLon.Lat
-			} else if runway.HeLatLon.Lat > maxLat {
-				maxLat = runway.HeLatLon.Lat
-			}
-
-			if runway.HeLatLon.Lon < minLon {
-				minLon = runway.HeLatLon.Lon
-			} else if runway.HeLatLon.Lon > maxLon {
-				maxLon = runway.HeLatLon.Lon
-			}
-		}
-	}
-
-	return sm.CreateBBox(maxLat, minLon, minLat, maxLon)
+func createBbox(airport *airports.Airport, margin float64) (*s2.Rect, error) {
+	bb := airport.GetBoundingBox(margin)
+	return sm.CreateBBox(bb.Max.Lat, bb.Min.Lon, bb.Min.Lat, bb.Max.Lon)
 }
 
 func genMessage(airport *airports.Airport) string {
@@ -167,7 +133,7 @@ func drawAirport(airport *airports.Airport, tiles *sm.TileProvider) ([]byte, err
 	ctx.SetSize(1024, 1024)
 	ctx.SetTileProvider(tiles)
 
-	bbox, err := createBbox(airport)
+	bbox, err := createBbox(airport, 0.002)
 	if err != nil {
 		return nil, err
 	}
