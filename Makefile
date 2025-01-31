@@ -1,4 +1,4 @@
-.bin/bot-linux: cmd/bot/main.go internal/airports/*.go internal/data/*.go go.mod
+.bin/bot-linux: go.mod go.sum cmd/bot/main.go internal/airports/*.go internal/data/*.go go.mod
 	mkdir -p .bin
 	GOOS=linux GOARCH=amd64 go build -o .bin/bot-linux cmd/bot/main.go
 

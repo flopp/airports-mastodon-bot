@@ -1,21 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"image/jpeg"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/flopp/airports-mastodon-bot/internal/airports"
+	"github.com/flopp/airports-mastodon-bot/internal/bot"
 	"github.com/flopp/airports-mastodon-bot/internal/data"
 	sm "github.com/flopp/go-staticmaps"
-	"github.com/golang/geo/s2"
 	"github.com/mattn/go-mastodon"
 	"golang.org/x/exp/rand"
 )
@@ -66,36 +63,6 @@ func readMastodonConfig(fileName string) (mastodon.Config, error) {
 	return conf, nil
 }
 
-func is_interesting(airport *airports.Airport) bool {
-	minRunwayLength := 1.0
-	interestingRunways := make([]*airports.Runway, 0, len(airport.Runways))
-	for _, runway := range airport.Runways {
-		if d, _, err := runway.LeLatLon.DistanceBearing(runway.HeLatLon); err != nil || d < minRunwayLength {
-			continue
-		}
-		interestingRunways = append(interestingRunways, runway)
-	}
-
-	if airport.Type == "large_airport" {
-		if len(interestingRunways) < 1 {
-			return false
-		}
-	} else if airport.Type == "medium_airport" {
-		if len(interestingRunways) < 3 {
-			return false
-		}
-	} else {
-		return false
-	}
-
-	return true
-}
-
-func createBbox(airport *airports.Airport, margin float64) (*s2.Rect, error) {
-	bb := airport.GetBoundingBox(margin)
-	return sm.CreateBBox(bb.Max.Lat, bb.Min.Lon, bb.Min.Lat, bb.Max.Lon)
-}
-
 func genMessage(airport *airports.Airport) string {
 	msg := ""
 	if airport.City != "" {
@@ -128,31 +95,6 @@ func genMessage(airport *airports.Airport) string {
 	return msg
 }
 
-func drawAirport(airport *airports.Airport, tiles *sm.TileProvider) ([]byte, error) {
-	ctx := sm.NewContext()
-	ctx.SetSize(1024, 1024)
-	ctx.SetTileProvider(tiles)
-
-	bbox, err := createBbox(airport, 0.002)
-	if err != nil {
-		return nil, err
-	}
-	ctx.SetBoundingBox(*bbox)
-
-	img, err := ctx.Render()
-	if err != nil {
-		return nil, err
-	}
-
-	buff := new(bytes.Buffer)
-	var byteWriter = bufio.NewWriter(buff)
-	if err := jpeg.Encode(byteWriter, img, nil); err != nil {
-		return nil, fmt.Errorf("failed to encode jpg: %w", err)
-	}
-
-	return buff.Bytes(), nil
-}
-
 func main() {
 	options := parseCommandLine()
 
@@ -165,71 +107,14 @@ func main() {
 	runways_csv := fmt.Sprintf("%s/runways.csv", options.DataPath)
 	countries_csv := fmt.Sprintf("%s/countries.csv", options.DataPath)
 
-	airports_data, err := data.ReadCsvFile(airports_csv)
+	airports_by_icao, err := airports.Load(airports_csv, runways_csv, countries_csv)
 	if err != nil {
 		panic(err)
-	}
-	runways_data, err := data.ReadCsvFile(runways_csv)
-	if err != nil {
-		panic(err)
-	}
-	countries_data, err := data.ReadCsvFile(countries_csv)
-	if err != nil {
-		panic(err)
-	}
-
-	countries_by_code := make(map[string]*airports.Country)
-	for line, data := range countries_data {
-		if line == 0 {
-			continue
-		}
-		country, err := airports.CreateCountryFromCsvData(data)
-		if err != nil {
-			panic(fmt.Errorf("%s:%d could not parse airport: %w", countries_csv, line, err))
-		}
-
-		if existing_country, found := countries_by_code[country.Code]; found {
-			panic(fmt.Errorf("counties with same code '%s': '%s', '%s'", country.Code, existing_country.Name, country.Name))
-		}
-		countries_by_code[country.Code] = &country
-	}
-
-	airports_by_icao := make(map[string]*airports.Airport)
-
-	for line, data := range airports_data {
-		if line == 0 {
-			continue
-		}
-		airport, err := airports.CreateAiportFromCsvData(data, countries_by_code)
-		if err != nil {
-			panic(fmt.Errorf("%s:%d could not parse airport: %w", airports_csv, line, err))
-		}
-
-		if existing_airport, found := airports_by_icao[airport.ICAO]; found {
-			panic(fmt.Errorf("airports with same ICAO code '%s': '%s', '%s'", airport.ICAO, existing_airport.Name, airport.Name))
-		}
-		airports_by_icao[airport.ICAO] = &airport
-	}
-
-	for line, data := range runways_data {
-		if line == 0 {
-			continue
-		}
-		runway, err := airports.CreateRunwayFromCsvData(data)
-		if err != nil {
-			panic(fmt.Errorf("%s:%d could not parse runway: %w", runways_csv, line, err))
-		}
-
-		if airport, found := airports_by_icao[runway.AirportICAO]; found {
-			airport.Runways = append(airport.Runways, &runway)
-		} else {
-			panic(fmt.Errorf("%s:%d cannot find airport by ICAO '%s", runways_csv, line, runway.AirportICAO))
-		}
 	}
 
 	interesting_airports := make([]*airports.Airport, 0)
 	for _, airport := range airports_by_icao {
-		if is_interesting(airport) {
+		if bot.IsInteresting(airport) {
 			interesting_airports = append(interesting_airports, airport)
 			// double insertion of large airports to raise their chance
 			if airport.Type == "large_airport" {
@@ -254,12 +139,12 @@ func main() {
 		Language:   "en",
 	}
 
-	aerialImage, err := drawAirport(airport, tilesAerial)
+	aerialImage, err := bot.DrawAirport(airport, tilesAerial)
 	if err != nil {
 		panic(fmt.Errorf("cannot draw aerial image of airport '%s': %w", airport.Name, err))
 	}
 
-	osmImage, err := drawAirport(airport, tilesOSM)
+	osmImage, err := bot.DrawAirport(airport, tilesOSM)
 	if err != nil {
 		panic(fmt.Errorf("cannot draw OSM image of airport '%s': %w", airport.Name, err))
 	}
