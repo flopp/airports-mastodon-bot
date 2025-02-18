@@ -7,7 +7,7 @@ require (
 	github.com/fogleman/gg v1.3.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/mattn/go-mastodon v0.0.9
-	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
+	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa
 )
 
 require (
