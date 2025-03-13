@@ -2,6 +2,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/flopp/go-coordsparser v0.0.0-20240403152942-4891dc40d0a7 h1:ZYEbOgGPFGLZwkLxRjV9zxZAIR1lExrNfFnObG/peek=
 github.com/flopp/go-coordsparser v0.0.0-20240403152942-4891dc40d0a7/go.mod h1:7y/2PxXfR1mGtIQFNtFE1daHIka2e8J480Bsm+MiCpk=
+github.com/flopp/go-coordsparser v0.0.0-20250311184423-61a7ff62d17c h1:HNRXT/BVRhDaHuFjFQ81mHd+DAmkRJXIELEL05LCDpk=
+github.com/flopp/go-coordsparser v0.0.0-20250311184423-61a7ff62d17c/go.mod h1:7y/2PxXfR1mGtIQFNtFE1daHIka2e8J480Bsm+MiCpk=
 github.com/flopp/go-staticmaps v0.0.0-20240606055734-0bdd9c1c1478 h1:rKlN4NCEUFdQ+pFGHchbZmRarzflkKtupcmqbxZNOZY=
 github.com/flopp/go-staticmaps v0.0.0-20240606055734-0bdd9c1c1478/go.mod h1:Rr7/JmBsMZMKycTY56uTrDJtTPp3dbqxIudNljFNYs4=
 github.com/flopp/go-staticmaps v0.0.0-20250129201323-615576df0b98 h1:XgpBarTAm2Pg87YB/kP3EAznxNRJ+g3SRXBjJ9Wb1S8=
@@ -14,6 +16,8 @@ github.com/flopp/go-staticmaps v0.0.0-20250227150215-898c41de9235 h1:QzkJCXj4V2F
 github.com/flopp/go-staticmaps v0.0.0-20250227150215-898c41de9235/go.mod h1:GeFXoRQndRgIiPIt4BEM1DSem+sXRAwsfw3uPvH5IQc=
 github.com/flopp/go-staticmaps v0.0.0-20250306114558-bdc56d64f95f h1:2JqZQ3ywct5vMMjHq8l15+WGeYACsr66jM5KLGXuw70=
 github.com/flopp/go-staticmaps v0.0.0-20250306114558-bdc56d64f95f/go.mod h1:3qLOqswFMAIufLl6XVZ5KIbkJQwmDFqDlyZDd1V4CV4=
+github.com/flopp/go-staticmaps v0.0.0-20250313113111-282a4426879b h1:a2kKup8Er7z067tpMowrKw3M16ME0D/ZqDiGGcLn+7Q=
+github.com/flopp/go-staticmaps v0.0.0-20250313113111-282a4426879b/go.mod h1:xc/lYdJrqSz4kZmI3hWwpuUgjd4pPovKDkbF1vJmTGU=
 github.com/fogleman/gg v1.3.0 h1:/7zJX8F6AaYQc57WQCyN9cAIz+4bCJGO9B+dyW29am8=
 github.com/fogleman/gg v1.3.0/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 h1:DACJavvAHhabrF08vX0COfcOBJRhZ8lUbR+ZWIs0Y5g=

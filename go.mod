@@ -3,7 +3,7 @@ module github.com/flopp/airports-mastodon-bot
 go 1.23.4
 
 require (
-	github.com/flopp/go-staticmaps v0.0.0-20250306114558-bdc56d64f95f
+	github.com/flopp/go-staticmaps v0.0.0-20250313113111-282a4426879b
 	github.com/fogleman/gg v1.3.0
 	github.com/golang/geo v0.0.0-20230421003525-6adc56603217
 	github.com/mattn/go-mastodon v0.0.9
@@ -11,7 +11,7 @@ require (
 )
 
 require (
-	github.com/flopp/go-coordsparser v0.0.0-20240403152942-4891dc40d0a7 // indirect
+	github.com/flopp/go-coordsparser v0.0.0-20250311184423-61a7ff62d17c // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
 	github.com/mazznoer/csscolorparser v0.1.5 // indirect
