@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/flopp/go-staticmaps v0.0.0-20250328171741-0dfacd7c56f2
 	github.com/fogleman/gg v1.3.0
-	github.com/golang/geo v0.0.0-20250328065203-0b6e08c212fb
+	github.com/golang/geo v0.0.0-20250403143024-b4895f722f25
 	github.com/mattn/go-mastodon v0.0.9
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
 )
