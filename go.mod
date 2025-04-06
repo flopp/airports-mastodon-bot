@@ -3,7 +3,7 @@ module github.com/flopp/airports-mastodon-bot
 go 1.23.4
 
 require (
-	github.com/flopp/go-staticmaps v0.0.0-20250404035346-f211a4679c69
+	github.com/flopp/go-staticmaps v0.0.0-20250405044834-70ca5a40ed67
 	github.com/fogleman/gg v1.3.0
 	github.com/golang/geo v0.0.0-20250404181303-07d601f131f3
 	github.com/mattn/go-mastodon v0.0.9
