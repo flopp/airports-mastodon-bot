@@ -70,6 +70,8 @@ github.com/golang/geo v0.0.0-20250613135800-9e8e59d779cc h1:HeTandKJybEWXv6wW9o3
 github.com/golang/geo v0.0.0-20250613135800-9e8e59d779cc/go.mod h1:Vaw7L5b+xa3Rj4/pRtrQkymn3lSBRB/NAEdbF9YEVLA=
 github.com/golang/geo v0.0.0-20250627182359-f4b81656db99 h1:JBrPhKsd24GeJJjRtchOCfCmMHumV0H3/RJRvwxlYYk=
 github.com/golang/geo v0.0.0-20250627182359-f4b81656db99/go.mod h1:Vaw7L5b+xa3Rj4/pRtrQkymn3lSBRB/NAEdbF9YEVLA=
+github.com/golang/geo v0.0.0-20261026081726-9e1e803a26c2 h1:mn9CrGOm+I97JqS7x6kqbI0AK09oFkHozXSKN4nxgoQ=
+github.com/golang/geo v0.0.0-20261026081726-9e1e803a26c2/go.mod h1:bJozU6ZRa8d29WpXkTQZ42lWCOJ+SC3XA8sXnLqA5IU=
 github.com/gorilla/websocket v1.5.1 h1:gmztn0JnHVt9JZquRuzLw3g4wouNVzKL15iLr/zn/QY=
 github.com/gorilla/websocket v1.5.1/go.mod h1:x3kM2JMyaluk02fnUJpQuwD2dCS5NDG2ZHL0uE0tcaY=
 github.com/mattn/go-mastodon v0.0.9 h1:zAlQF0LMumKPQLNR7dZL/YVCrvr4iP6ayyzxTR3vsSw=
